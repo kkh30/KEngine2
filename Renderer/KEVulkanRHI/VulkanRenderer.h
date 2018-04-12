@@ -1,10 +1,13 @@
 #ifndef VULKAN_RENDERER_H
 #define VULKAN_RENDERER_H
+#define VMA_USE_STL_CONTAINERS
 #include "vk_mem_alloc.h"
 #include <vulkan\vulkan.h>
 #include "KEModule.h"
 #include "WSIWindow\CDevices.h"
 #include "KEWindow.h"
+#include "VulkanSwapChain.h"
+
 
 struct KEVulkanRendererDescriptor
 {
@@ -25,6 +28,10 @@ public:
 	virtual void OnStartUp() override;
 	virtual void OnShutDown() override;
 	void InitVMAllocator();
+	void InitSwapChain();
+	void InitResources();
+	void InitFramebuffers();
+	void InitDepthStencilBuffer();
 private:
 	VkSurfaceKHR m_surface = VK_NULL_HANDLE;
 	CInstance* m_instance = nullptr;
@@ -35,6 +42,8 @@ private:
 	bool VK_KHR_get_memory_requirements2_enabled = true;
 	bool VK_KHR_dedicated_allocation_enabled = true;
 	VmaAllocator m_allocator;
+	VulkanSwapChain m_swap_chain = VulkanSwapChain();
+
 };
 
 

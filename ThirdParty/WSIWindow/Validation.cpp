@@ -150,7 +150,7 @@ void CDebugReport::Set(VkDebugReportFlagsEXT newFlags, PFN_vkDebugReportCallback
     func  = newFunc;
     flags = newFlags;
 
-    Destroy(); // Destroy old report before creating new one
+    //Destroy(); // Destroy old report before creating new one
     VkDebugReportCallbackCreateInfoEXT create_info = {};
     create_info.sType                              = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
     create_info.pNext                              = NULL;
@@ -162,6 +162,7 @@ void CDebugReport::Set(VkDebugReportFlagsEXT newFlags, PFN_vkDebugReportCallback
 
 void CDebugReport::Destroy() {
     if (debug_report_callback) vkDestroyDebugReportCallbackEXT(instance, debug_report_callback, NULL);
+	debug_report_callback = nullptr;
 }
 
 void CDebugReport::Print() {  // print the state of the report flags

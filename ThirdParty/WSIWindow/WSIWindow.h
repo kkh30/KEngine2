@@ -77,7 +77,10 @@ class WSIWindow {
     //--State query functions--
     void GetWinPos  (int16_t& x, int16_t& y);           // Get the window's x,y position, relative to top-left
     void GetWinSize (int16_t& width, int16_t& height);  // Get the window's width and height
-    bool GetKeyState(const eKeycode key);               // Returns true if specified key is pressed. (see keycodes.h)
+	uint32_t GetWidth();
+	uint32_t GetHeight();
+
+	bool GetKeyState(const eKeycode key);               // Returns true if specified key is pressed. (see keycodes.h)
     bool GetBtnState(const uint8_t  btn);               // Returns true if specified mouse button is pressed (button 1-3)
     void GetMousePos(int16_t& x, int16_t& y);           // Get mouse (x,y) coordinate within window client area
 

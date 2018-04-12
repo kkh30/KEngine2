@@ -86,6 +86,7 @@ struct CDevice {
     CDevice(CPhysicalDevice gpu);
     ~CDevice();
     CQueue* AddQueue(VkQueueFlags flags, VkSurfaceKHR surface = 0);  // returns 0 if failed
+	operator VkDevice() { return handle; }
 };
 //----------------------------------------------------------------
 

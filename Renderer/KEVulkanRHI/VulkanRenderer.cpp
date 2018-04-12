@@ -17,7 +17,6 @@ KEVulkanRenderer::KEVulkanRenderer(
 	m_gpu = m_gpus->FindPresentable(m_surface);
 	m_device = new CDevice(*m_gpu);
 	m_graphics_queue = m_device->AddQueue(VK_QUEUE_GRAPHICS_BIT, m_surface);
-	InitVMAllocator();
 }
 
 KEVulkanRenderer::~KEVulkanRenderer()
@@ -26,8 +25,9 @@ KEVulkanRenderer::~KEVulkanRenderer()
 
 void KEVulkanRenderer::OnStartUp()
 {
-	
-
+	InitVMAllocator();
+	InitSwapChain();
+	InitResources();
 
 }
 
@@ -76,4 +76,25 @@ void KEVulkanRenderer::InitVMAllocator()
 	//}
 
 	vmaCreateAllocator(&allocatorInfo, &m_allocator);
+}
+
+void KEVulkanRenderer::InitSwapChain()
+{
+	m_swap_chain.connect(*m_instance, *m_gpu, *m_device);
+	m_swap_chain.initVKSurfaceWithSystemSurface(m_surface);
+	m_swap_chain.create(KEWindow::Instance().GetWidth(), KEWindow::Instance().GetHeight());
+}
+
+void KEVulkanRenderer::InitResources()
+{
+	InitFramebuffers();
+	InitDepthStencilBuffer();
+}
+
+void KEVulkanRenderer::InitFramebuffers()
+{
+}
+
+void KEVulkanRenderer::InitDepthStencilBuffer()
+{
 }

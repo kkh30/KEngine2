@@ -169,7 +169,7 @@ class CDebugReport {
     void Destroy();                                            // Destroy the debug report. Must be called BEFORE vkDestroyInstance()
 
   public:
-    VkDebugReportFlagsEXT GetFlags() { return flags; }         // Returns current flag settings.
+    VkDebugReportFlagsEXT GetFlags() const{ return flags; }         // Returns current flag settings.
     void SetFlags(VkDebugReportFlagsEXT flags);                // Select which type of messages to display
     void SetCallback(PFN_vkDebugReportCallbackEXT debugFunc);  // Set a custom callback function for printing debug reports
 };

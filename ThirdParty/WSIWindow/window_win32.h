@@ -198,7 +198,7 @@ EventType Window_win32::GetEvent(bool wait_for_event) {
                 uint8_t wheel = (GET_WHEEL_DELTA_WPARAM(msg.wParam) > 0) ? 4 : 5;
                 POINT point = {x, y};
                 ScreenToClient(msg.hwnd, &point);
-                return {EventType::MOUSE, {eDOWN, (int16_t)point.x, (int16_t)point.y, wheel}};
+                return {EventType::MOUSE, {{eDOWN, (int16_t)point.x, (int16_t)point.y, wheel}}};
             }
             //--Keyboard events--
             case WM_KEYDOWN   : return KeyEvent(eDOWN, WIN32_TO_HID[msg.wParam]);
