@@ -135,7 +135,7 @@ CInstance::CInstance(const bool enable_validation, const char* app_name, const c
                      "VK_LAYER_GOOGLE_unique_objects"});
     }
     // clang-format on
-    layers.Print();
+    //layers.Print();
 #endif
     CExtensions extensions;
     if (extensions.Pick(VK_KHR_SURFACE_EXTENSION_NAME)) {
@@ -156,7 +156,7 @@ CInstance::CInstance(const bool enable_validation, const char* app_name, const c
 
 #ifdef ENABLE_VALIDATION
     extensions.Pick(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);  // in Debug mode, Enable Validation
-    extensions.Print();
+    //extensions.Print();
 #endif
     assert(extensions.PickCount() >= 2);
     Create(layers, extensions, app_name, engine_name);

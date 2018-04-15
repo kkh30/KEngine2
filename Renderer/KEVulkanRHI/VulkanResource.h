@@ -1,15 +1,13 @@
 #pragma once
 #include <stdint.h>
 #include <memory>
-#include "vk_mem_alloc.h"
+#include "VulkanCore.h"
 class KEVulkanResource
 {
 public:
-	KEVulkanResource(VkDevice p_device,VmaAllocator* p_allocator, const uint64_t& p_size = 0, uint8_t* p_data=nullptr) :
+	KEVulkanResource(const uint64_t& p_size = 0, uint8_t* p_data=nullptr) :
 		m_size(p_size),
-		m_data(p_data),
-		m_allocator(p_allocator),
-		m_device(p_device)
+		m_data(p_data)
 	{
 
 	};
@@ -29,10 +27,11 @@ public:
 	
 	}
 
+	KEVulkanResource(const KEVulkanResource&) = delete;
+	KEVulkanResource& operator =(const KEVulkanResource&) = delete;
+
 protected:
 	uint64_t m_size;
 	uint8_t* m_data;
-	VmaAllocator* m_allocator;
-	VkDevice m_device;
 };
 

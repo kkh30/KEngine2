@@ -6,15 +6,18 @@
 class KEVulkanRenderTarget :public KEVulkanResource
 {
 public:
+	KEVulkanRenderTarget() {
+	
+	}
+
 	KEVulkanRenderTarget
-	(	VkDevice p_device,
-		VmaAllocator* p_allocator,
+	(	
 		uint32_t p_width,
 		uint32_t p_height,
 		VkFormat p_format,
 		VmaMemoryUsage p_usage
 	) :
-		KEVulkanResource(p_device,p_allocator),
+		KEVulkanResource(),
 		m_width(p_width),
 		m_height(p_height),
 		m_format(p_format),
@@ -22,8 +25,8 @@ public:
 	{
 		VkImageCreateInfo imageInfo = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
 		imageInfo.imageType = VK_IMAGE_TYPE_2D;
-		imageInfo.extent.width = KEWindow::Instance().GetWidth();
-		imageInfo.extent.height = KEWindow::Instance().GetHeight();
+		imageInfo.extent.width = m_width;
+		imageInfo.extent.height = m_height;
 		imageInfo.extent.depth = 1;
 		imageInfo.mipLevels = 1;
 		imageInfo.arrayLayers = 1;
@@ -38,7 +41,7 @@ public:
 		VmaAllocationCreateInfo depthImageAllocCreateInfo = {};
 		depthImageAllocCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-		vmaCreateImage(*m_allocator, &imageInfo, &depthImageAllocCreateInfo, &m_image, &m_allocation, nullptr);
+		vmaCreateImage(VulkanCore::allocator, &imageInfo, &depthImageAllocCreateInfo, &m_image, &m_allocation, nullptr);
 
 		VkImageViewCreateInfo depthImageViewInfo = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
 		depthImageViewInfo.image = m_image;
@@ -50,11 +53,16 @@ public:
 		depthImageViewInfo.subresourceRange.baseArrayLayer = 0;
 		depthImageViewInfo.subresourceRange.layerCount = 1;
 
-		vkCreateImageView(m_device, &depthImageViewInfo, nullptr, &m_image_view);
+		vkCreateImageView(VulkanCore::vk_device, &depthImageViewInfo, nullptr, &m_image_view);
 	};
 	~KEVulkanRenderTarget() {
-	
+		vmaDestroyImage(VulkanCore::allocator, m_image, m_allocation);
+		vkDestroyImageView(VulkanCore::vk_device, m_image_view, nullptr);
+		m_allocation = nullptr;
+		m_image = VK_NULL_HANDLE;
+		m_image_view = VK_NULL_HANDLE;
 	};
+	__forceinline VkImageView GetImageView() const { return m_image_view; }
 
 private:
 	uint32_t m_width = 0 ;
@@ -63,6 +71,6 @@ private:
 	VmaMemoryUsage m_usage = VmaMemoryUsage::VMA_MEMORY_USAGE_UNKNOWN;
 	VkImage m_image = VK_NULL_HANDLE;
 	VkImageView m_image_view = VK_NULL_HANDLE;
-	VmaAllocation m_allocation;
+	VmaAllocation m_allocation = nullptr;
 };
 

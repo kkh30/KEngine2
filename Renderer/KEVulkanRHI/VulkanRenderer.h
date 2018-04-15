@@ -1,13 +1,9 @@
 #ifndef VULKAN_RENDERER_H
 #define VULKAN_RENDERER_H
-#define VMA_USE_STL_CONTAINERS
-#include "vk_mem_alloc.h"
-#include <vulkan\vulkan.h>
+#include "VulkanCore.h"
 #include "KEModule.h"
-#include "WSIWindow\CDevices.h"
-#include "KEWindow.h"
-#include "VulkanSwapChain.h"
-
+#include "VulkanRenderTarget.h"
+#include "VulkanFrameBuffer.h"
 
 struct KEVulkanRendererDescriptor
 {
@@ -27,23 +23,35 @@ public:
 
 	virtual void OnStartUp() override;
 	virtual void OnShutDown() override;
+	virtual void Update() override;
 	void InitVMAllocator();
 	void InitSwapChain();
 	void InitResources();
 	void InitFramebuffers();
 	void InitDepthStencilBuffer();
+	void InitDeferredPass();
+	void InitPipelineLayout();
+	void InitPipelineState();
+	void InitCmdPool();
+	void InitCmdBuffers();
+	void RecordCmdBuffers();
+	void InitSynchronizationPrimitives();
 private:
-	VkSurfaceKHR m_surface = VK_NULL_HANDLE;
-	CInstance* m_instance = nullptr;
-	CPhysicalDevices* m_gpus = nullptr;
-	CPhysicalDevice *m_gpu = nullptr;
-	CDevice* m_device = nullptr;
-	CQueue* m_graphics_queue = nullptr;
+	VkRenderPass m_deferred_pass = VK_NULL_HANDLE;
 	bool VK_KHR_get_memory_requirements2_enabled = true;
 	bool VK_KHR_dedicated_allocation_enabled = true;
-	VmaAllocator m_allocator;
 	VulkanSwapChain m_swap_chain = VulkanSwapChain();
-
+	KEVulkanRenderTarget* m_depth_stencil_buffer = nullptr;
+	VkFormat m_depth_format = VK_FORMAT_UNDEFINED;
+	std::vector<KEVulkanFramebuffer> m_framebuffers = {};
+	std::vector<VkCommandBuffer> m_cmd_buffers = {};
+	struct Synchronization
+	{
+		VkSemaphore presentCompleteSemaphore;
+		VkSemaphore renderCompleteSemaphore;
+	}m_semaphores = {};
+	std::vector<VkFence> m_fences;
+	uint32_t m_currentBuffer = 0;
 };
 
 

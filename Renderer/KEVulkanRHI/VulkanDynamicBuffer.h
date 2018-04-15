@@ -6,8 +6,8 @@
 class KEVulkanDynamicBuffer :public KEVulkanResource
 {
 public:
-	KEVulkanDynamicBuffer(const uint64_t& p_size, VmaAllocator* p_allocator, uint8_t* p_data = nullptr):
-	KEVulkanResource(p_size, p_allocator, p_data)
+	KEVulkanDynamicBuffer(const uint64_t& p_size,  uint8_t* p_data = nullptr):
+	KEVulkanResource(p_size, p_data)
 	{
 	
 	};

@@ -79,6 +79,8 @@ class WSIWindow {
     void GetWinSize (int16_t& width, int16_t& height);  // Get the window's width and height
 	uint32_t GetWidth();
 	uint32_t GetHeight();
+	int32_t GetX() {return pimpl->shape.x; };
+	int32_t GetY() {return pimpl->shape.y; };
 
 	bool GetKeyState(const eKeycode key);               // Returns true if specified key is pressed. (see keycodes.h)
     bool GetBtnState(const uint8_t  btn);               // Returns true if specified mouse button is pressed (button 1-3)

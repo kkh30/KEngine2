@@ -27,6 +27,7 @@ int main() {
 	{
 		auto& Window = KEWindow::Instance();
 		while (Window.ProcessEvents()) {
+			KEVulkanRenderer::Instance().Update();
 			bool key_pressed = Window.GetKeyState(KEY_LeftShift);
 			if (key_pressed) printf("LEFT SHIFT PRESSED\r");
 		}
