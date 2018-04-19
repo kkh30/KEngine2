@@ -16,6 +16,9 @@ namespace VulkanCore {
 	extern CPhysicalDevice *gpu;
 	extern CQueue* graphics_queue;
 	extern VkCommandPool cmd_pool;
+	extern VkCommandBuffer temp_command_buffer;
+	extern void BeginCommandBuffer(VkCommandBuffer p_cmd_buffer);
+	extern void FlushCommandBuffer(VkCommandBuffer p_cmd_buffer);
 	extern VkDebugReportFlagsEXT debug_repost_flags;
 	VkFormat FindSupportedFormat(
 		const std::vector<VkFormat>& candidates,

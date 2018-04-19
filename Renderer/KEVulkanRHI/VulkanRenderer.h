@@ -4,6 +4,7 @@
 #include "KEModule.h"
 #include "VulkanRenderTarget.h"
 #include "VulkanFrameBuffer.h"
+#include "VulkanStaticBuffer.h"
 
 struct KEVulkanRendererDescriptor
 {
@@ -35,7 +36,10 @@ public:
 	void InitCmdPool();
 	void InitCmdBuffers();
 	void RecordCmdBuffers();
+	void InitDateBuffers();
+
 	void InitSynchronizationPrimitives();
+
 private:
 	VkRenderPass m_deferred_pass = VK_NULL_HANDLE;
 	bool VK_KHR_get_memory_requirements2_enabled = true;
@@ -52,6 +56,7 @@ private:
 	}m_semaphores = {};
 	std::vector<VkFence> m_fences;
 	uint32_t m_currentBuffer = 0;
+	KEVulkanStaticBuffer m_vertex_buffer;
 };
 
 

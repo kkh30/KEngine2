@@ -33,9 +33,9 @@ void KEVulkanRenderer::OnStartUp()
 	InitVMAllocator();
 	InitSwapChain();
 	InitDeferredPass();
-	InitResources();
 	InitCmdPool();
 	InitCmdBuffers();
+	InitResources();
 	RecordCmdBuffers();
 	InitSynchronizationPrimitives();
 }
@@ -90,7 +90,7 @@ void KEVulkanRenderer::Update()
 	//(vkQueueSubmit(m_graphics_queue, 1, &submitInfo, nullptr));
 
 	// Present the current buffer to the swap chain
-	// Pass the semaphore signaled by the command buffer submission from the submit info as the wait semaphore for swap chain presentation
+	// Pass the semaphore signaled by the command buf fer submission from the submit info as the wait semaphore for swap chain presentation
 	// This ensures that the image is not presented to the windowing system until all commands have been submitted
 	m_swap_chain.queuePresent(*VulkanCore::graphics_queue, m_currentBuffer, m_semaphores.renderCompleteSemaphore);
 
@@ -139,6 +139,12 @@ void KEVulkanRenderer::RecordCmdBuffers()
 		}
 		vkEndCommandBuffer(cmd);
 	}
+}
+
+void KEVulkanRenderer::InitDateBuffers()
+{
+	//Init Vertex Buffer
+
 }
 
 void KEVulkanRenderer::InitSynchronizationPrimitives()
@@ -205,6 +211,7 @@ void KEVulkanRenderer::InitResources()
 {
 	InitDepthStencilBuffer();
 	InitFramebuffers();
+	InitDateBuffers();
 }
 
 void KEVulkanRenderer::InitFramebuffers()
@@ -328,6 +335,7 @@ void KEVulkanRenderer::InitCmdPool()
 
 void KEVulkanRenderer::InitCmdBuffers()
 {
+
 	VkCommandBufferAllocateInfo l_create_info = {};
 	l_create_info.commandBufferCount = m_swap_chain.imageCount;
 	l_create_info.commandPool = VulkanCore::cmd_pool;
@@ -335,5 +343,10 @@ void KEVulkanRenderer::InitCmdBuffers()
 	l_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	m_cmd_buffers.resize(m_swap_chain.imageCount);
 	vkAllocateCommandBuffers(VulkanCore::vk_device, &l_create_info, m_cmd_buffers.data());
+
+	//Allocate A temp cmd buffer for resources allocation.
+	l_create_info.commandBufferCount = 1;
+	vkAllocateCommandBuffers(VulkanCore::vk_device, &l_create_info, &VulkanCore::temp_command_buffer);
+
 }
 

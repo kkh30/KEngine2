@@ -11,10 +11,24 @@ namespace VulkanCore {
 	CPhysicalDevice *gpu = nullptr;
 	CQueue* graphics_queue = nullptr;
 	VkCommandPool cmd_pool = VK_NULL_HANDLE;
+	VkCommandBuffer temp_command_buffer = VK_NULL_HANDLE;
 
 
 
-
+	void BeginCommandBuffer(VkCommandBuffer p_cmd_buffer) {
+		VkCommandBufferBeginInfo l_begin_info = {};
+		l_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		vkBeginCommandBuffer(p_cmd_buffer, &l_begin_info);
+	};
+	void FlushCommandBuffer(VkCommandBuffer p_cmd_buffer) {
+		vkEndCommandBuffer(p_cmd_buffer);
+		VkSubmitInfo submitInfo = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &p_cmd_buffer;
+		vkQueueSubmit(*graphics_queue, 1, &submitInfo, VK_NULL_HANDLE);
+		vkQueueWaitIdle(*graphics_queue);
+		vkResetCommandBuffer(p_cmd_buffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
+	};
 
 	VkDebugReportFlagsEXT debug_repost_flags = 
 		VK_DEBUG_REPORT_WARNING_BIT_EXT |
