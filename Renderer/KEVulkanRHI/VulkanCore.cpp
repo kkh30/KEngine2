@@ -1,6 +1,6 @@
 #include "VulkanCore.h"
-
-
+#include <fstream>
+#include <stdio.h>
 namespace VulkanCore {
 	CDevice* device = nullptr;
 	VkDevice vk_device = VK_NULL_HANDLE;
@@ -70,4 +70,61 @@ namespace VulkanCore {
 			VK_IMAGE_TILING_OPTIMAL,
 			VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 	}
+
+	void DestroyShaderModule(VkShaderModule p_module){
+		vkDestroyShaderModule(vk_device, p_module, nullptr);
+	};
+
+
+	VkShaderModule loadSPIRVShader(std::string filename)
+	{
+		size_t shaderSize;
+		char* shaderCode;
+
+#if defined(__ANDROID__)
+		// Load shader from compressed asset
+		AAsset* asset = AAssetManager_open(androidApp->activity->assetManager, filename.c_str(), AASSET_MODE_STREAMING);
+		assert(asset);
+		shaderSize = AAsset_getLength(asset);
+		assert(shaderSize > 0);
+
+		shaderCode = new char[shaderSize];
+		AAsset_read(asset, shaderCode, shaderSize);
+		AAsset_close(asset);
+#else
+		std::ifstream is(filename, std::ios::binary | std::ios::in | std::ios::ate);
+
+		if (is.is_open())
+		{
+			shaderSize = is.tellg();
+			is.seekg(0, std::ios::beg);
+			// Copy file contents into a buffer
+			shaderCode = new char[shaderSize];
+			is.read(shaderCode, shaderSize);
+			is.close();
+			assert(shaderSize > 0);
+		}
+#endif
+		if (shaderCode)
+		{
+			// Create a new shader module that will be used for pipeline creation
+			VkShaderModuleCreateInfo moduleCreateInfo{};
+			moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+			moduleCreateInfo.codeSize = shaderSize;
+			moduleCreateInfo.pCode = (uint32_t*)shaderCode;
+
+			VkShaderModule shaderModule;
+			vkCreateShaderModule(vk_device, &moduleCreateInfo, NULL, &shaderModule);
+
+			delete[] shaderCode;
+
+			return shaderModule;
+		}
+		else
+		{
+			assert("Error: Could not open shader file \n");
+			return VK_NULL_HANDLE;
+		}
+	}
+
 };//£¡namespace VulkanCore

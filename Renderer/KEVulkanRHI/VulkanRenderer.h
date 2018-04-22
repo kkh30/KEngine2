@@ -12,6 +12,11 @@ struct KEVulkanRendererDescriptor
 	
 };
 
+struct Vertex {
+	float position[3];
+	float color[3];
+};
+
 class KEVulkanRenderer final: public Module<KEVulkanRenderer>
 {
 public:
@@ -31,16 +36,17 @@ public:
 	void InitFramebuffers();
 	void InitDepthStencilBuffer();
 	void InitDeferredPass();
-	void InitPipelineLayout();
-	void InitPipelineState();
 	void InitCmdPool();
 	void InitCmdBuffers();
 	void RecordCmdBuffers();
 	void InitDateBuffers();
-
+	void InitPipelines();
 	void InitSynchronizationPrimitives();
 
 private:
+	VkPipeline m_pipeline = VK_NULL_HANDLE;
+	VkPipelineLayout m_pipeline_layout = VK_NULL_HANDLE;
+	VkPipelineCache m_pipeline_cache = VK_NULL_HANDLE;
 	VkRenderPass m_deferred_pass = VK_NULL_HANDLE;
 	bool VK_KHR_get_memory_requirements2_enabled = true;
 	bool VK_KHR_dedicated_allocation_enabled = true;
@@ -56,7 +62,9 @@ private:
 	}m_semaphores = {};
 	std::vector<VkFence> m_fences;
 	uint32_t m_currentBuffer = 0;
-	KEVulkanStaticBuffer m_vertex_buffer;
+	KEVulkanVertexBuffer* m_vertex_buffer = nullptr;
+	KEVulkanIndexBuffer* m_index_buffer = nullptr;
+
 };
 
 

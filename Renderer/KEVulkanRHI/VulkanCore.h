@@ -25,4 +25,7 @@ namespace VulkanCore {
 		VkImageTiling tiling,
 		VkFormatFeatureFlags features);
 	VkFormat FindDepthFormat();
+	VkShaderModule loadSPIRVShader(std::string filename);
+	void DestroyShaderModule(VkShaderModule);
+
 };//£¡namespace VulkanCore
