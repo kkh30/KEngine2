@@ -17,6 +17,7 @@ namespace VulkanCore {
 	extern CQueue* graphics_queue;
 	extern VkCommandPool cmd_pool;
 	extern VkCommandBuffer temp_command_buffer;
+	extern VkDescriptorPool desc_pool;
 	extern void BeginCommandBuffer(VkCommandBuffer p_cmd_buffer);
 	extern void FlushCommandBuffer(VkCommandBuffer p_cmd_buffer);
 	extern VkDebugReportFlagsEXT debug_repost_flags;

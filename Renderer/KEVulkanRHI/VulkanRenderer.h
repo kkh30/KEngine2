@@ -5,6 +5,8 @@
 #include "VulkanRenderTarget.h"
 #include "VulkanFrameBuffer.h"
 #include "VulkanStaticBuffer.h"
+#include "VulkanDynamicBuffer.h"
+#include "Camera/BsCamera.h"
 
 struct KEVulkanRendererDescriptor
 {
@@ -42,9 +44,13 @@ public:
 	void InitDateBuffers();
 	void InitPipelines();
 	void InitSynchronizationPrimitives();
+	void InitDescritporPool();
+	void AllocDescriptorSets();
+	void AllocCameraDescSet();
 
 private:
 	VkPipeline m_pipeline = VK_NULL_HANDLE;
+	VkPipeline m_pipeline_line = VK_NULL_HANDLE;
 	VkPipelineLayout m_pipeline_layout = VK_NULL_HANDLE;
 	VkPipelineCache m_pipeline_cache = VK_NULL_HANDLE;
 	VkRenderPass m_deferred_pass = VK_NULL_HANDLE;
@@ -65,6 +71,9 @@ private:
 	KEVulkanVertexBuffer* m_vertex_buffer = nullptr;
 	KEVulkanIndexBuffer* m_index_buffer = nullptr;
 
+	bs::CameraBase* m_main_camera = nullptr;
+	KEVulkanUniformBuffer* m_camera_buffer = nullptr;
+	std::vector<VkDescriptorSetLayout> m_desc_set_layouts;
 };
 
 

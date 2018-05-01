@@ -22,7 +22,7 @@ public:
 		VkFramebufferCreateInfo l_frame_buffer_create_info = {};
 		l_frame_buffer_create_info.pAttachments = m_attachment.data();
 		l_frame_buffer_create_info.height = p_height;
-		l_frame_buffer_create_info.attachmentCount = m_attachment.size();
+		l_frame_buffer_create_info.attachmentCount = static_cast<uint32_t>(m_attachment.size());
 		l_frame_buffer_create_info.renderPass = p_render_pass;
 		l_frame_buffer_create_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		l_frame_buffer_create_info.width = p_width;

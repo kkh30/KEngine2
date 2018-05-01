@@ -35,7 +35,10 @@ void KEVulkanRenderer::OnStartUp()
 	InitDeferredPass();
 	InitCmdPool();
 	InitCmdBuffers();
+
 	InitResources();
+	InitDescritporPool();
+	AllocDescriptorSets();
 	InitPipelines();
 	RecordCmdBuffers();
 	InitSynchronizationPrimitives();
@@ -69,7 +72,6 @@ void KEVulkanRenderer::Update()
 	// Get next image in the swap chain (back/front buffer)
 	m_swap_chain.acquireNextImage(m_semaphores.presentCompleteSemaphore, &m_currentBuffer);
 
-	// m_currentBuffer = (m_currentBuffer + 1) % 3;
 	// Pipeline stage at which the queue submission will wait (via pWaitSemaphores)
 	vkWaitForFences(VulkanCore::vk_device, 1, &m_fences[m_currentBuffer], VK_TRUE, UINT64_MAX);
 	vkResetFences(VulkanCore::vk_device, 1, &m_fences[m_currentBuffer]);
@@ -103,7 +105,7 @@ void KEVulkanRenderer::RecordCmdBuffers()
 	l_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
 	VkClearValue clearValues[2];
-	clearValues[0].color = { { 0.1f, 0.6f, 0.3f, 1.0f } };
+	clearValues[0].color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
 	clearValues[1].depthStencil = { 1.0f, 0 };
 
 	VkRenderPassBeginInfo renderPassBeginInfo = {};
@@ -141,7 +143,13 @@ void KEVulkanRenderer::RecordCmdBuffers()
 			vkCmdBindVertexBuffers(cmd, 0, 1, *m_vertex_buffer, &offsets);
 			vkCmdBindIndexBuffer(cmd, *m_index_buffer, offsets, VkIndexType::VK_INDEX_TYPE_UINT32);
 			vkCmdBindPipeline(cmd, VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
-			vkCmdDrawIndexed(cmd, 3, 1, 0, 0, 0);
+			vkCmdBindDescriptorSets(cmd, VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_layout, 0, 1, &m_camera_buffer->m_desc_set, 0, nullptr);
+			vkCmdDrawIndexed(cmd, 6, 1, 0, 0, 0);
+
+			vkCmdSetLineWidth(cmd, 3.0f);
+			vkCmdBindPipeline(cmd, VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_line);
+			vkCmdDrawIndexed(cmd, 6, 1, 6, 0, 0);
+
 			vkCmdEndRenderPass(cmd);
 		}
 		vkEndCommandBuffer(cmd);
@@ -153,19 +161,63 @@ void KEVulkanRenderer::InitDateBuffers()
 	// Setup vertices
 	std::vector<float> vertexBuffer =
 	{
-		1.0f,  1.0f, 0.0f ,1.0f, 0.0f, 0.0f ,
-		-1.0f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-		0.0f, -1.0f, 0.0f ,0.0f, 0.0f, 1.0f ,
+		1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f ,
+		-1.0f,0.0f,  1.0f, 0.0f, 1.0f, 0.0f,
+		1.0f, 0.0f,-1.0f, 0.0f, 0.0f, 1.0f ,
+
+		-1.0f,0.0f, 1.0f,  0.0f, 1.0f, 0.0f ,
+		-1.0f,0.0f,  -1.0f, 1.0f, 1.0f, 0.0f,
+		1.0f, 0.0f,-1.0f,  0.0f, 0.0f, 1.0f ,
+
+
+		//X-Axis
+		0.0f, 0.0f,0.0f,  0.0f, 0.0f, 1.0f ,
+		2.0f, 0.0f,0.0f,  0.0f, 0.0f, 1.0f ,
+		//Y-Axis
+		0.0f, 0.0f,0.0f,  0.0f, 1.0f ,	0.0f,
+		0.0f, 2.0f,0.0f,  0.0f, 1.0f ,	 0.0f,
+		//Z-Axis
+		0.0f, 0.0f,0.0f,  1.0f ,0.0f, 0.0f,
+		0.0f, 0.0f,2.0f,  1.0f , 0.0f, 0.0f,
+
+
 	};
-	uint32_t vertexBufferSize = static_cast<uint32_t>(vertexBuffer.size()) * sizeof(Vertex);
+	//uint32_t vertexBufferSize = static_cast<uint32_t>(vertexBuffer.size()) * sizeof(float);
 
 	// Setup indices
-	std::vector<uint32_t> indexBuffer = { 0, 1, 2 };
+	std::vector<uint32_t> indexBuffer = { 0, 2, 1 ,3,5,4,6,7,8,9,10,11};
 
 	//Init Vertex Buffer
 	m_vertex_buffer = new KEVulkanVertexBuffer(vertexBuffer);
 	//Init Index Buffer
 	m_index_buffer = new KEVulkanIndexBuffer(indexBuffer);
+	//Init Camera Uniform Buffer
+	const int MATRIX_FLOAT_COUNT = 16;
+	//model view proj = 3
+	using namespace bs;
+	Matrix4 proj = Matrix4::projectionPerspective(Degree(75.0f), 1920.0f / 1080.0f, 0.01f, 100.0f);
+	Matrix4 VULKAN_TO_GL_MATRIX = Matrix4();
+	VULKAN_TO_GL_MATRIX[0] = { 1.0f, 0.0f, 0.0f, 0.0f };
+	VULKAN_TO_GL_MATRIX[1] = { 0.0f, -1.0f, 0.0f, 0.0f};
+	VULKAN_TO_GL_MATRIX[2] = { 0.0f, 0.0f, 0.5f, 0.5f };
+	VULKAN_TO_GL_MATRIX[3] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+	Vector3 cameraPos = Vector3(2.0f, 2.0f, 2.0f);
+	Vector3 lookDir = -Vector3::normalize(cameraPos);
+
+	Quaternion cameraRot(BsIdentity);
+	cameraRot.lookRotation(lookDir);
+
+	Matrix4 view = Matrix4::view(cameraPos, cameraRot);
+
+	Quaternion rotation(Vector3::UNIT_Y, Degree(00.0f));
+	Matrix4 world = Matrix4::TRS(Vector3::ZERO, rotation, Vector3::ONE);
+
+	Matrix4 viewProj = VULKAN_TO_GL_MATRIX * proj * view * world;
+	//viewProj = VULKAN_TO_GL_MATRIX * Matrix4(BS_IDENTITY::BsIdentity);
+	viewProj = viewProj.transpose();
+	m_camera_buffer = new KEVulkanUniformBuffer(viewProj.m);
+
 }
 
 void KEVulkanRenderer::InitPipelines()
@@ -174,6 +226,8 @@ void KEVulkanRenderer::InitPipelines()
 	{
 		VkPipelineLayoutCreateInfo l_create_info = {};
 		l_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+		l_create_info.pSetLayouts = m_desc_set_layouts.data();
+		l_create_info.setLayoutCount = static_cast<uint32_t>(m_desc_set_layouts.size());
 		vkCreatePipelineLayout(VulkanCore::vk_device, &l_create_info, nullptr, &m_pipeline_layout);
 	}
 	//Init PipelineCaceh
@@ -206,12 +260,12 @@ void KEVulkanRenderer::InitPipelines()
 	VkPipelineRasterizationStateCreateInfo rasterizationState = {};
 	rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 	rasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
-	rasterizationState.cullMode = VK_CULL_MODE_NONE;
+	rasterizationState.cullMode = VK_CULL_MODE_BACK_BIT;
 	rasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	rasterizationState.depthClampEnable = VK_FALSE;
 	rasterizationState.rasterizerDiscardEnable = VK_FALSE;
 	rasterizationState.depthBiasEnable = VK_FALSE;
-	rasterizationState.lineWidth = 1.0f;
+	rasterizationState.lineWidth = 3.0f;
 
 	// Color blend state describes how blend factors are calculated (if used)
 	// We need one blend attachment state per color attachment (even if blending is not used
@@ -237,6 +291,7 @@ void KEVulkanRenderer::InitPipelines()
 	std::vector<VkDynamicState> dynamicStateEnables;
 	dynamicStateEnables.push_back(VK_DYNAMIC_STATE_VIEWPORT);
 	dynamicStateEnables.push_back(VK_DYNAMIC_STATE_SCISSOR);
+	dynamicStateEnables.push_back(VK_DYNAMIC_STATE_LINE_WIDTH);
 	VkPipelineDynamicStateCreateInfo dynamicState = {};
 	dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 	dynamicState.pDynamicStates = dynamicStateEnables.data();
@@ -340,6 +395,10 @@ void KEVulkanRenderer::InitPipelines()
 	// Create rendering pipeline using the specified states
 	vkCreateGraphicsPipelines(VulkanCore::vk_device, m_pipeline_cache, 1, &pipelineCreateInfo, nullptr, &m_pipeline);
 
+	inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+	vkCreateGraphicsPipelines(VulkanCore::vk_device, m_pipeline_cache, 1, &pipelineCreateInfo, nullptr, &m_pipeline_line);
+
+
 	// Shader modules are no longer needed once the graphics pipeline has been created
 	VulkanCore::DestroyShaderModule(shaderStages[0].module);
 	VulkanCore::DestroyShaderModule(shaderStages[1].module);
@@ -370,6 +429,62 @@ void KEVulkanRenderer::InitSynchronizationPrimitives()
 		vkCreateFence(VulkanCore::vk_device, &fenceCreateInfo, nullptr, &fence);
 	}
 	
+}
+
+void KEVulkanRenderer::InitDescritporPool()
+{
+	VkDescriptorPoolSize l_uniform_buffer_size = {};
+	l_uniform_buffer_size.descriptorCount = 1;
+	l_uniform_buffer_size.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	VkDescriptorPoolCreateInfo l_create_info = {};
+	l_create_info.maxSets = 1;
+	l_create_info.pPoolSizes = &l_uniform_buffer_size;
+	l_create_info.poolSizeCount = 1;
+	l_create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	vkCreateDescriptorPool(VulkanCore::vk_device, &l_create_info, nullptr, &VulkanCore::desc_pool);
+}
+
+void KEVulkanRenderer::AllocDescriptorSets()
+{
+	AllocCameraDescSet();
+}
+
+void KEVulkanRenderer::AllocCameraDescSet()
+{
+	//Allocate Camera Desc Set
+	VkDescriptorSetLayout l_camera_set_layout = VK_NULL_HANDLE;
+
+	VkDescriptorSetLayoutBinding l_camera_binding = {};
+	l_camera_binding.binding = 0;
+	l_camera_binding.descriptorCount = 1;
+	l_camera_binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	l_camera_binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	
+	VkDescriptorSetLayoutCreateInfo l_set_layout_create_info = {};
+	l_set_layout_create_info.bindingCount = 1;
+	l_set_layout_create_info.pBindings = &l_camera_binding;
+	l_set_layout_create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	vkCreateDescriptorSetLayout(VulkanCore::vk_device, &l_set_layout_create_info, nullptr, &l_camera_set_layout);
+	m_desc_set_layouts.push_back(l_camera_set_layout);
+
+	VkDescriptorSetAllocateInfo l_create_info = {};
+	l_create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	l_create_info.descriptorSetCount = 1;
+	l_create_info.pSetLayouts = &l_camera_set_layout;
+	l_create_info.descriptorPool = VulkanCore::desc_pool;
+	vkAllocateDescriptorSets(VulkanCore::vk_device, &l_create_info, &m_camera_buffer->m_desc_set);
+
+	//Update Camera Desc Set
+
+	VkWriteDescriptorSet l_desc_write_info = {};
+	l_desc_write_info.descriptorCount = 1;
+	l_desc_write_info.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	l_desc_write_info.dstBinding = 0;
+	l_desc_write_info.dstSet = m_camera_buffer->m_desc_set;
+	l_desc_write_info.pBufferInfo = &m_camera_buffer->GetBufferInfo();
+	l_desc_write_info.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	vkUpdateDescriptorSets(VulkanCore::vk_device, 1, &l_desc_write_info, 0, nullptr);
+
 }
 
 
@@ -499,18 +614,18 @@ void KEVulkanRenderer::InitDeferredPass()
 	
 	//Init Subpasses
 	VkSubpassDescription l_geometry_subpass = {};
-	l_geometry_subpass.colorAttachmentCount = l_attachments_ref.size();
+	l_geometry_subpass.colorAttachmentCount = static_cast<uint32_t>(l_attachments_ref.size());
 	l_geometry_subpass.pColorAttachments = l_attachments_ref.data();
 	l_geometry_subpass.pDepthStencilAttachment = &l_depth_stencil_ref;
 	std::vector<VkSubpassDescription> l_subpasses = { l_geometry_subpass };
 
 	VkRenderPassCreateInfo l_renderpass_create_info = {};
-	l_renderpass_create_info.attachmentCount = l_attachments.size();
+	l_renderpass_create_info.attachmentCount = static_cast<uint32_t>(l_attachments.size());
 	l_renderpass_create_info.pAttachments = l_attachments.data();
 	l_renderpass_create_info.pDependencies = l_dependencies.data();
-	l_renderpass_create_info.dependencyCount = l_dependencies.size();
+	l_renderpass_create_info.dependencyCount = static_cast<uint32_t>(l_dependencies.size());
 	l_renderpass_create_info.pSubpasses = l_subpasses.data();
-	l_renderpass_create_info.subpassCount = l_subpasses.size();
+	l_renderpass_create_info.subpassCount = static_cast<uint32_t>(l_subpasses.size());
 	l_renderpass_create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 	vkCreateRenderPass(VulkanCore::vk_device, &l_renderpass_create_info, nullptr, &m_deferred_pass);
 }

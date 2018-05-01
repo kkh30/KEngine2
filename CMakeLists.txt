@@ -6,6 +6,7 @@ include_directories(ThirdParty)
 include_directories("C:\\VulkanSDK\\1.1.70.1\\Include")
 include_directories(Framework)
 include_directories(Renderer)
+include_directories(GamePlay)
 
 add_subdirectory(Framework)
 add_subdirectory(ThirdParty)

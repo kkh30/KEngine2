@@ -67,8 +67,8 @@ public:
 	};
 
 	virtual void Update() {
-		assert(IsStartUp() && "Module Not StartUp Yet!\n");
-		assert(!IsShutDown() && "Module ShutDown Already!\n");
+		//assert(IsStartUp() && "Module Not StartUp Yet!\n");
+		//assert(!IsShutDown() && "Module ShutDown Already!\n");
 	};
 
 	

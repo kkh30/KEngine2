@@ -12,7 +12,7 @@ namespace VulkanCore {
 	CQueue* graphics_queue = nullptr;
 	VkCommandPool cmd_pool = VK_NULL_HANDLE;
 	VkCommandBuffer temp_command_buffer = VK_NULL_HANDLE;
-
+	VkDescriptorPool desc_pool = VK_NULL_HANDLE;
 
 
 	void BeginCommandBuffer(VkCommandBuffer p_cmd_buffer) {

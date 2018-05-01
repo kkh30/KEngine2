@@ -1,8 +1,8 @@
 #include <KEWindow.h>
 #include "KEVulkanRHI\VulkanRenderer.h"
 
-
 int main() {
+	
 	setvbuf(stdout, NULL, _IONBF, 0);                    // Prevent printf buffering in QtCreator
 	printf("WSI-Window\n");
 	LOGW("Test Warnings\n");

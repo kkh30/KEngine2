@@ -134,7 +134,7 @@ void CDevice::Create() {
     device_create_info.pQueueCreateInfos       = info_list.data();
     device_create_info.enabledExtensionCount   = extensions.PickCount();
     device_create_info.ppEnabledExtensionNames = extensions.PickList();
-    device_create_info.pEnabledFeatures        = &gpu.enabled_features;
+    device_create_info.pEnabledFeatures        = &gpu.features;
     VKERRCHECK(vkCreateDevice(gpu, &device_create_info, nullptr, &handle));         // create device
     for (auto& q : queues) vkGetDeviceQueue(handle, q.family, q.index, &q.handle);  // get queue handles
 }

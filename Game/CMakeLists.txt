@@ -1,5 +1,5 @@
 
 
 add_executable(Game "Game.cpp")
-target_link_libraries(Game Renderer )
+target_link_libraries(Game Renderer)
 
